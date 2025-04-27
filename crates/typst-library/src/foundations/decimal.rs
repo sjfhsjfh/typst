@@ -4,7 +4,7 @@ use std::ops::Neg;
 use std::str::FromStr;
 
 use ecow::{eco_format, EcoString};
-use rust_decimal::MathematicalOps;
+use rust_decimal::{MathematicalOps, RoundingStrategy};
 use typst_syntax::{ast, Span, Spanned};
 
 use crate::diag::{warning, At, SourceResult};
@@ -99,6 +99,7 @@ impl Decimal {
     pub const ONE: Self = Self(rust_decimal::Decimal::ONE);
     pub const MIN: Self = Self(rust_decimal::Decimal::MIN);
     pub const MAX: Self = Self(rust_decimal::Decimal::MAX);
+    pub const TEN: Self = Self(rust_decimal::Decimal::TEN);
 
     /// Whether this decimal value is zero.
     pub const fn is_zero(self) -> bool {
@@ -190,6 +191,18 @@ impl Decimal {
 
         // Multiply by 10^digits again, which can overflow and fail.
         num.checked_mul(ten_to_digits).map(Self)
+    }
+
+    pub fn round_dp_with_strategy(self, dp: u32, strategy: RoundingStrategy) -> Self {
+        Self(self.0.round_dp_with_strategy(dp, strategy))
+    }
+
+    pub fn round_sf_with_strategy(
+        self,
+        sf: u32,
+        strategy: RoundingStrategy,
+    ) -> Option<Self> {
+        self.0.round_sf_with_strategy(sf, strategy).map(Self)
     }
 
     /// Attempts to add two decimals.

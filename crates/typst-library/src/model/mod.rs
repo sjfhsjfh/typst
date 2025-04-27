@@ -2,6 +2,7 @@
 
 mod bibliography;
 mod cite;
+mod digits;
 mod document;
 mod emph;
 #[path = "enum.rs"]
@@ -23,6 +24,7 @@ mod terms;
 
 pub use self::bibliography::*;
 pub use self::cite::*;
+pub use self::digits::*;
 pub use self::document::*;
 pub use self::emph::*;
 pub use self::enum_::*;
@@ -63,6 +65,7 @@ pub fn define(global: &mut Scope) {
     global.define_elem::<TermsElem>();
     global.define_elem::<EmphElem>();
     global.define_elem::<StrongElem>();
+    global.define_elem::<DigitsElem>();
     global.define_func::<numbering>();
     global.reset_category();
 }
