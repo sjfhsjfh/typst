@@ -1,4 +1,3 @@
-use ecow::EcoString;
 use typst_macros::{cast, elem, Cast};
 use typst_syntax::Spanned;
 
@@ -6,7 +5,7 @@ use crate::{
     diag::{error, HintedStrResult, SourceResult},
     engine::Engine,
     foundations::{
-        self, dict, Content, Decimal, Dict, NativeElement, Packed, Repr, Show, Smart,
+        self, dict, Content, Decimal, Dict, NativeElement, Packed, Show, Smart,
         ToDecimal, Value,
     },
     text::TextElem,
