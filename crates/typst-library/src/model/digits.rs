@@ -35,6 +35,9 @@ pub struct DigitsElem {
 
     #[default]
     pub grouping_marker: Smart<Content>,
+
+    #[default]
+    pub trailing_decimal_marker: bool,
 }
 
 impl DigitsElem {
@@ -46,7 +49,7 @@ impl DigitsElem {
 impl Show for Packed<DigitsElem> {
     fn show(
         &self,
-        engine: &mut Engine,
+        _engine: &mut Engine,
         styles: foundations::StyleChain,
     ) -> SourceResult<Content> {
         let mut realized = Content::empty();
@@ -82,42 +85,41 @@ impl Show for Packed<DigitsElem> {
             .grouping_marker(styles)
             .custom()
             .unwrap_or(TextElem::new(" ".into()).pack());
+        let trailing_dm = self.trailing_decimal_marker(styles);
 
-        let mut digit_counter = None;
+        let mut counting = false;
+        let mut counter = 0u32;
         for (dead, component) in component_itrtr {
-            // TODO: Allow trailing decimal point?
-            match pos {
-                Some(RoundingPrecision::DecimalPoint(dp)) => {
-                    if let Some(dcval) = digit_counter {
-                        if dcval == dp {
-                            break;
-                        }
-                        if matches!(component, DigitsComponent::Digit(_)) {
-                            digit_counter = Some(dcval + 1);
-                        }
-                    } else if matches!(component, DigitsComponent::DecimalPoint) {
-                        digit_counter = Some(0);
-                    }
-                }
-                Some(RoundingPrecision::SignificantFigures(sf)) => {
-                    if let Some(dcval) = digit_counter {
-                        if dcval == sf {
-                            break;
-                        }
-                        if matches!(component, DigitsComponent::Digit(_)) {
-                            digit_counter = Some(dcval + 1);
-                        }
-                    } else if let DigitsComponent::Digit(digit) = component {
-                        if digit != 0 {
-                            digit_counter = Some(1);
+            if !counting {
+                match pos {
+                    Some(RoundingPrecision::DecimalPoint(_)) => {
+                        if matches!(component, DigitsComponent::DecimalPoint) {
+                            counting = true;
                         }
                     }
+                    Some(RoundingPrecision::SignificantFigures(_)) => {
+                        if matches!(component, DigitsComponent::Digit(digit) if digit != 0)
+                        {
+                            counting = true;
+                        }
+                    }
+                    _ => {}
                 }
-                _ => {
-                    if dead {
-                        break;
+            } else if matches!(component, DigitsComponent::Digit(_)) {
+                counter += 1;
+            }
+            if !(trailing_dm && matches!(component, DigitsComponent::DecimalPoint))
+                && match pos {
+                    None => dead,
+                    Some(RoundingPrecision::DecimalPoint(dp)) => {
+                        counting && counter >= dp
+                    }
+                    Some(RoundingPrecision::SignificantFigures(sf)) => {
+                        dead && counting && counter >= sf
                     }
                 }
+            {
+                break;
             }
             match component {
                 DigitsComponent::Digit(digit) => {
