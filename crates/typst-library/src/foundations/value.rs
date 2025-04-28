@@ -19,6 +19,7 @@ use crate::foundations::{
     Symbol, SymbolElem, Type, Version,
 };
 use crate::layout::{Abs, Angle, Em, Fr, Length, Ratio, Rel};
+use crate::model::DigitsElem;
 use crate::text::{RawContent, RawElem, TextElem};
 use crate::visualize::{Color, Gradient, Tiling};
 
@@ -191,9 +192,10 @@ impl Value {
     pub fn display(self) -> Content {
         match self {
             Self::None => Content::empty(),
-            Self::Int(v) => TextElem::packed(repr::format_int_with_base(v, 10)),
+            Self::Int(v) => DigitsElem::packed(v),
+            // Self::Float(v) => DigitsElem::packed(v),
             Self::Float(v) => TextElem::packed(repr::display_float(v)),
-            Self::Decimal(v) => TextElem::packed(eco_format!("{v}")),
+            Self::Decimal(v) => DigitsElem::packed(v),
             Self::Str(v) => TextElem::packed(v),
             Self::Version(v) => TextElem::packed(eco_format!("{v}")),
             Self::Symbol(v) => SymbolElem::packed(v.get()),

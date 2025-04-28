@@ -44,8 +44,8 @@ pub struct DigitsElem {
 }
 
 impl DigitsElem {
-    pub fn formatted(&self, rounded: Decimal) -> EcoString {
-        rounded.repr()
+    pub fn packed(value: impl Into<Decimal>) -> Content {
+        Self::new(value.into()).pack()
     }
 }
 
