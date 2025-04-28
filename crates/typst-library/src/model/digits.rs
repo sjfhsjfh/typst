@@ -38,6 +38,9 @@ pub struct DigitsElem {
 
     #[default]
     pub trailing_decimal_marker: bool,
+
+    #[default]
+    pub numerals: Smart<Numerals>,
 }
 
 impl DigitsElem {
@@ -73,6 +76,8 @@ impl Show for Packed<DigitsElem> {
         } else {
             self.value
         };
+        let _lang = TextElem::lang_in(styles);
+        let _region = TextElem::region_in(styles);
         // TODO: Locale
         let component_itrtr = DigitsIterator::new(grouping_st, rounded);
         // TODO: Locale
@@ -86,6 +91,8 @@ impl Show for Packed<DigitsElem> {
             .custom()
             .unwrap_or(TextElem::new(" ".into()).pack());
         let trailing_dm = self.trailing_decimal_marker(styles);
+        // TODO: Locale
+        let numerals = self.numerals(styles).custom().unwrap_or(Numerals::Western);
 
         let mut counting = false;
         let mut counter = 0u32;
@@ -123,7 +130,8 @@ impl Show for Packed<DigitsElem> {
             }
             match component {
                 DigitsComponent::Digit(digit) => {
-                    realized += TextElem::new(digit.to_string().into()).pack();
+                    realized +=
+                        TextElem::new(numerals.digit_to_char(digit).into()).pack();
                 }
                 DigitsComponent::DecimalPoint => {
                     realized += decimal_marker.clone();
@@ -319,6 +327,26 @@ pub enum DigitsComponent {
 
     /// A grouping separator (',' in 1,000)
     GroupingSeparator,
+}
+
+#[derive(Debug, Clone, Copy, Hash, PartialEq, Eq, Cast)]
+pub enum Numerals {
+    Eastern,
+    Western,
+}
+
+impl Numerals {
+    const EASTERN: [char; 10] = [
+        '\u{0660}', '\u{0661}', '\u{0662}', '\u{0663}', '\u{0664}', '\u{0665}',
+        '\u{0666}', '\u{0667}', '\u{0668}', '\u{0669}',
+    ];
+    const WESTERN: [char; 10] = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'];
+    pub fn digit_to_char(&self, digit: u8) -> char {
+        match self {
+            Numerals::Eastern => Self::EASTERN[digit as usize],
+            Numerals::Western => Self::WESTERN[digit as usize],
+        }
+    }
 }
 
 #[cfg(test)]
